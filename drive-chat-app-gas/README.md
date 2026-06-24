@@ -55,9 +55,10 @@ Script Properties are the secure way to store secrets in Apps Script (like envir
 | Property | Value | Required? |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Your key from console.anthropic.com | Yes |
-| `FOLDER_ID_1` | First Drive folder ID to index | Yes |
-| `FOLDER_ID_2` | Second Drive folder ID to index | Yes (can duplicate FOLDER_ID_1 if only one folder) |
+| `FOLDER_IDS` | Comma-separated folder IDs, e.g. `id1,id2,id3` | Yes |
 | `ALLOWLIST_SHEET_ID` | Google Sheet ID for access control (see Step 4) | No — if omitted, all Google users can access |
+
+> **Adding or removing folders later:** Just edit the `FOLDER_IDS` property value and click the Reload button in the sidebar. No code changes or redeployment needed.
 
 4. Click **Save script properties**
 

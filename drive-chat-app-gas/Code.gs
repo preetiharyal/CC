@@ -68,17 +68,14 @@ function getDocuments() {
   }
 
   var props = PropertiesService.getScriptProperties();
-  var folderId1 = props.getProperty('FOLDER_ID_1');
-  var folderId2 = props.getProperty('FOLDER_ID_2');
+  var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
+  var folderIds = folderIdsRaw.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
 
   var docs = [];
 
-  if (folderId1) {
-    collectFromFolder(folderId1, docs);
-  }
-  if (folderId2) {
-    collectFromFolder(folderId2, docs);
-  }
+  folderIds.forEach(function(folderId) {
+    collectFromFolder(folderId, docs);
+  });
 
   // CacheService has a 100KB limit per entry; store what fits
   var serialized = JSON.stringify(docs);
@@ -316,12 +313,12 @@ function getStatus() {
   var userEmail = Session.getActiveUser().getEmail();
   var allowed = isUserAllowed();
   var apiKey = props.getProperty('ANTHROPIC_API_KEY');
-  var f1 = props.getProperty('FOLDER_ID_1');
-  var f2 = props.getProperty('FOLDER_ID_2');
+  var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
+  var folderIds = folderIdsRaw.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
   return {
     userEmail: userEmail,
     isAllowed: allowed,
     anthropicConfigured: !!apiKey,
-    folderIds: [f1, f2]
+    folderIds: folderIds
   };
 }
