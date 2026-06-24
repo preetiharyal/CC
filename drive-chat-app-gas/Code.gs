@@ -2,6 +2,49 @@
 // Drive Knowledge Base — Google Apps Script backend
 // ============================================================
 
+// --------------- Diagnostics (run this from the editor to debug) ----
+
+function diagnose() {
+  var props = PropertiesService.getScriptProperties();
+  var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
+  Logger.log('FOLDER_IDS value: "' + folderIdsRaw + '"');
+
+  var folderIds = folderIdsRaw.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
+  Logger.log('Parsed folder IDs: ' + JSON.stringify(folderIds));
+
+  folderIds.forEach(function(folderId) {
+    Logger.log('--- Testing folder: ' + folderId);
+
+    // Test 1: DriveApp
+    try {
+      var folder = DriveApp.getFolderById(folderId);
+      Logger.log('DriveApp.getFolderById OK: ' + folder.getName());
+    } catch (e) {
+      Logger.log('DriveApp.getFolderById FAILED: ' + e.message);
+    }
+
+    // Test 2: Advanced Drive Service
+    try {
+      var result = Drive.Files.list({
+        q: '"' + folderId + '" in parents and trashed = false',
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+        pageSize: 5,
+        fields: 'files(id, name, mimeType)'
+      });
+      var files = result.files || [];
+      Logger.log('Drive.Files.list OK — found ' + files.length + ' items (first 5):');
+      files.forEach(function(f) {
+        Logger.log('  ' + f.name + ' [' + f.mimeType + ']');
+      });
+    } catch (e) {
+      Logger.log('Drive.Files.list FAILED: ' + e.message);
+    }
+  });
+
+  Logger.log('--- Done. Check logs above for errors.');
+}
+
 // --------------- Entry point --------------------------------
 
 function doGet(e) {
