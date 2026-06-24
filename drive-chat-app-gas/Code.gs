@@ -98,7 +98,17 @@ function collectFromFolder(folderId, docs) {
     var folder = DriveApp.getFolderById(folderId);
     listFilesRecursive(folder, docs);
   } catch (err) {
-    Logger.log('Error accessing folder ' + folderId + ': ' + err.message);
+    // getFolderById fails for shared drive roots — try iterating the shared drive directly
+    Logger.log('getFolderById failed for ' + folderId + ', trying as shared drive: ' + err.message);
+    try {
+      var files = DriveApp.searchFiles('"' + folderId + '" in parents');
+      while (files.hasNext()) {
+        var doc = extractFileContent(files.next());
+        if (doc) docs.push(doc);
+      }
+    } catch (err2) {
+      Logger.log('Shared drive fallback also failed for ' + folderId + ': ' + err2.message);
+    }
   }
 }
 

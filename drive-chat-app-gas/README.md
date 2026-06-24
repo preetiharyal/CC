@@ -155,7 +155,7 @@ Send the Web App URL to your team members. They:
 - Go to Project Settings > Script properties and add the key
 
 **"Error loading documents"**
-- Check that FOLDER_ID_1 / FOLDER_ID_2 are correct
+- Check that FOLDER_IDS is correct in Script Properties
 - Make sure the logged-in user has access to those Drive folders
 - Check the Apps Script logs (View > Logs) for details
 

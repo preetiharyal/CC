@@ -425,7 +425,7 @@
 
       if (!docs || docs.length === 0) {
         list.innerHTML = '<div class="doc-item" style="color:#5f6368;">No documents found.</div>';
-        addSystemMessage('No documents were found in the configured Drive folders. Check FOLDER_ID_1 and FOLDER_ID_2 in Script Properties.');
+        addSystemMessage('No documents were found. Check that FOLDER_IDS is set correctly in Script Properties and that you have access to the folders.');
         return;
       }
 
