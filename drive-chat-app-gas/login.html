@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Denied — Drive Knowledge Base</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: #202124;
+      margin-bottom: 12px;
+    }
+    .email-badge {
+      display: inline-block;
+      background: #f1f3f4;
+      border-radius: 16px;
+      padding: 4px 14px;
+      font-size: 14px;
+      color: #202124;
+      margin-bottom: 20px;
+      word-break: break-all;
+    }
+    p {
+      font-size: 14px;
+      color: #5f6368;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #e8eaed;
+      margin: 24px 0;
+    }
+    .contact-note {
+      font-size: 13px;
+      color: #5f6368;
+    }
+    .contact-note strong {
+      color: #202124;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">&#128274;</div>
+    <h1>Not Authorized</h1>
+    <div class="email-badge">{{USER_EMAIL}}</div>
+    <p>
+      Your email address is not on the access list for this knowledge base.
+      Contact your administrator to request access.
+    </p>
+    <hr class="divider">
+    <div class="contact-note">
+      <strong>Already have access?</strong><br>
+      Make sure you are signed in with the correct Google account.
+      You can <a href="https://accounts.google.com/SignOutOptions" target="_blank">switch accounts</a> and then return to this page.
+    </div>
+  </div>
+</body>
+</html>
