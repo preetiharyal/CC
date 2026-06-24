@@ -94,26 +94,50 @@ function getDocuments() {
 }
 
 function collectFromFolder(folderId, docs) {
-  try {
-    var folder = DriveApp.getFolderById(folderId);
-    listFilesRecursive(folder, docs);
-  } catch (err) {
-    // getFolderById fails for shared drive roots — try iterating the shared drive directly
-    Logger.log('getFolderById failed for ' + folderId + ', trying as shared drive: ' + err.message);
+  listFilesRecursiveById(folderId, docs);
+}
+
+// Uses Advanced Drive Service (Drive API v3) to support shared drives
+function listFilesRecursiveById(folderId, docs) {
+  var pageToken = null;
+  do {
+    var params = {
+      q: '"' + folderId + '" in parents and trashed = false',
+      fields: 'nextPageToken, files(id, name, mimeType)',
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+      pageSize: 100
+    };
+    if (pageToken) params.pageToken = pageToken;
+
+    var response;
     try {
-      var files = DriveApp.searchFiles('"' + folderId + '" in parents');
-      while (files.hasNext()) {
-        var doc = extractFileContent(files.next());
-        if (doc) docs.push(doc);
-      }
-    } catch (err2) {
-      Logger.log('Shared drive fallback also failed for ' + folderId + ': ' + err2.message);
+      response = Drive.Files.list(params);
+    } catch (err) {
+      Logger.log('Drive.Files.list error for folder ' + folderId + ': ' + err.message);
+      return;
     }
-  }
+
+    var items = response.files || [];
+    items.forEach(function(item) {
+      if (item.mimeType === 'application/vnd.google-apps.folder') {
+        listFilesRecursiveById(item.id, docs);
+      } else {
+        try {
+          var file = DriveApp.getFileById(item.id);
+          var doc = extractFileContent(file);
+          if (doc) docs.push(doc);
+        } catch (e) {
+          Logger.log('Could not open file ' + item.name + ': ' + e.message);
+        }
+      }
+    });
+
+    pageToken = response.nextPageToken;
+  } while (pageToken);
 }
 
 function listFilesRecursive(folder, docs) {
-  // Files in this folder
   var files = folder.getFiles();
   while (files.hasNext()) {
     var file = files.next();
@@ -123,7 +147,6 @@ function listFilesRecursive(folder, docs) {
     }
   }
 
-  // Sub-folders
   var subFolders = folder.getFolders();
   while (subFolders.hasNext()) {
     listFilesRecursive(subFolders.next(), docs);
