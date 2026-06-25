@@ -99,238 +99,109 @@ function isUserAllowed() {
 
 // --------------- Document loading ---------------------------
 
+// Fast: just lists file metadata. Content is fetched lazily in chat().
 function getDocuments() {
   var cache = CacheService.getUserCache();
-  var cached = cache.get('drive_content');
+  var cached = cache.get('drive_file_list');
   if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (e) {
-      Logger.log('Cache parse error, re-fetching: ' + e.message);
-    }
+    try { return JSON.parse(cached); } catch (e) {}
   }
 
   var props = PropertiesService.getScriptProperties();
   var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
   var folderIds = folderIdsRaw.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
 
-  var docs = [];
-
+  var files = [];
   folderIds.forEach(function(folderId) {
-    collectFromFolder(folderId, docs);
+    collectFileList(folderId, files);
   });
 
-  // CacheService has a 100KB limit per entry; store what fits
-  var serialized = JSON.stringify(docs);
+  var serialized = JSON.stringify(files);
   try {
-    // Max cache value size is 100KB; truncate if needed
     if (serialized.length <= 100000) {
-      cache.put('drive_content', serialized, 21600); // 6 hours
-    } else {
-      Logger.log('Result too large for cache (' + serialized.length + ' chars), skipping cache.');
+      cache.put('drive_file_list', serialized, 21600);
     }
-  } catch (cacheErr) {
-    Logger.log('Cache write error: ' + cacheErr.message);
-  }
+  } catch (e) {}
 
-  return docs;
+  return files;
 }
 
-function collectFromFolder(folderId, docs) {
-  // Shared drive roots (IDs starting with "0A") need corpora:'drive' instead of parent query
+function collectFileList(folderId, files) {
   var isSharedDriveRoot = folderId.indexOf('0A') === 0;
-  if (isSharedDriveRoot) {
-    listSharedDriveContents(folderId, docs);
-  } else {
-    listFilesRecursiveById(folderId, docs);
-  }
-}
-
-// For shared drive roots: list all files in the drive
-function listSharedDriveContents(driveId, docs) {
   var pageToken = null;
   do {
-    var params = {
-      corpora: 'drive',
-      driveId: driveId,
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-      q: 'trashed = false',
-      fields: 'nextPageToken, files(id, name, mimeType)',
-      pageSize: 100
-    };
+    var params = isSharedDriveRoot
+      ? { corpora: 'drive', driveId: folderId, includeItemsFromAllDrives: true, supportsAllDrives: true, q: 'trashed = false', fields: 'nextPageToken, files(id, name, mimeType)', pageSize: 100 }
+      : { q: '"' + folderId + '" in parents and trashed = false', includeItemsFromAllDrives: true, supportsAllDrives: true, fields: 'nextPageToken, files(id, name, mimeType)', pageSize: 100 };
     if (pageToken) params.pageToken = pageToken;
 
     var response;
-    try {
-      response = Drive.Files.list(params);
-    } catch (err) {
-      Logger.log('Shared drive list error for ' + driveId + ': ' + err.message);
-      return;
-    }
+    try { response = Drive.Files.list(params); }
+    catch (err) { Logger.log('Drive.Files.list error for ' + folderId + ': ' + err.message); return; }
 
-    var items = response.files || [];
-    Logger.log('Shared drive ' + driveId + ': found ' + items.length + ' items');
-    items.forEach(function(item) {
-      if (item.mimeType !== 'application/vnd.google-apps.folder') {
-        try {
-          var file = DriveApp.getFileById(item.id);
-          var doc = extractFileContent(file);
-          if (doc) docs.push(doc);
-        } catch (e) {
-          Logger.log('Could not open file ' + item.name + ': ' + e.message);
-        }
-      }
-    });
-
-    pageToken = response.nextPageToken;
-  } while (pageToken);
-}
-
-// Uses Advanced Drive Service (Drive API v3) to support shared drives
-function listFilesRecursiveById(folderId, docs) {
-  var pageToken = null;
-  do {
-    var params = {
-      q: '"' + folderId + '" in parents and trashed = false',
-      fields: 'nextPageToken, files(id, name, mimeType)',
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-      pageSize: 100
-    };
-    if (pageToken) params.pageToken = pageToken;
-
-    var response;
-    try {
-      response = Drive.Files.list(params);
-    } catch (err) {
-      Logger.log('Drive.Files.list error for folder ' + folderId + ': ' + err.message);
-      return;
-    }
-
-    var items = response.files || [];
-    items.forEach(function(item) {
+    (response.files || []).forEach(function(item) {
       if (item.mimeType === 'application/vnd.google-apps.folder') {
-        listFilesRecursiveById(item.id, docs);
-      } else {
-        try {
-          var file = DriveApp.getFileById(item.id);
-          var doc = extractFileContent(file);
-          if (doc) docs.push(doc);
-        } catch (e) {
-          Logger.log('Could not open file ' + item.name + ': ' + e.message);
-        }
+        collectFileList(item.id, files);
+      } else if (isSupportedType(item.mimeType)) {
+        files.push({ id: item.id, name: item.name, mimeType: item.mimeType });
       }
     });
-
     pageToken = response.nextPageToken;
   } while (pageToken);
 }
 
-function listFilesRecursive(folder, docs) {
-  var files = folder.getFiles();
-  while (files.hasNext()) {
-    var file = files.next();
-    var doc = extractFileContent(file);
-    if (doc) {
-      docs.push(doc);
-    }
-  }
-
-  var subFolders = folder.getFolders();
-  while (subFolders.hasNext()) {
-    listFilesRecursive(subFolders.next(), docs);
-  }
+function isSupportedType(mimeType) {
+  return mimeType === 'application/vnd.google-apps.document' ||
+         mimeType === 'application/vnd.google-apps.spreadsheet' ||
+         mimeType === 'application/vnd.google-apps.presentation';
 }
 
-function extractFileContent(file) {
-  var id = file.getId();
-  var name = file.getName();
-  var mimeType = file.getMimeType();
-  var content = '';
+// Reads and caches content for a single file
+function getFileContent(fileId, name, mimeType) {
+  var cache = CacheService.getUserCache();
+  var cacheKey = 'file_' + fileId;
+  var cached = cache.get(cacheKey);
+  if (cached) return cached;
 
+  var content = '';
   try {
     if (mimeType === 'application/vnd.google-apps.document') {
-      content = DocumentApp.openById(id).getBody().getText();
+      content = DocumentApp.openById(fileId).getBody().getText();
 
     } else if (mimeType === 'application/vnd.google-apps.spreadsheet') {
-      var ss = SpreadsheetApp.openById(id);
-      var sheets = ss.getSheets();
-      var parts = [];
-      for (var i = 0; i < sheets.length; i++) {
-        var sheetName = sheets[i].getName();
-        var values = sheets[i].getDataRange().getValues();
-        var rows = values.map(function(row) {
-          return row.join('\t');
-        });
-        parts.push('Sheet: ' + sheetName + '\n' + rows.join('\n'));
-      }
+      var ss = SpreadsheetApp.openById(fileId);
+      var parts = ss.getSheets().map(function(sheet) {
+        var rows = sheet.getDataRange().getValues().map(function(row) { return row.join('\t'); });
+        return 'Sheet: ' + sheet.getName() + '\n' + rows.join('\n');
+      });
       content = parts.join('\n\n');
 
     } else if (mimeType === 'application/vnd.google-apps.presentation') {
-      var pres = SlidesApp.openById(id);
-      var slides = pres.getSlides();
+      var pres = SlidesApp.openById(fileId);
       var slideParts = [];
-      for (var s = 0; s < slides.length; s++) {
-        var slideText = [];
-        var shapes = slides[s].getShapes();
-        for (var sh = 0; sh < shapes.length; sh++) {
-          try {
-            var text = shapes[sh].getText().asString().trim();
-            if (text) {
-              slideText.push(text);
-            }
-          } catch (shErr) {
-            // Shape has no text, skip
-          }
-        }
-        if (slideText.length > 0) {
-          slideParts.push('Slide ' + (s + 1) + ':\n' + slideText.join('\n'));
-        }
-      }
+      pres.getSlides().forEach(function(slide, i) {
+        var texts = [];
+        slide.getShapes().forEach(function(shape) {
+          try { var t = shape.getText().asString().trim(); if (t) texts.push(t); } catch (e) {}
+        });
+        if (texts.length) slideParts.push('Slide ' + (i + 1) + ':\n' + texts.join('\n'));
+      });
       content = slideParts.join('\n\n');
-
-    } else if (mimeType === 'application/vnd.google-apps.form') {
-      Logger.log('Skipping Google Form: ' + name);
-      return null;
-
-    } else if (mimeType === 'application/pdf') {
-      Logger.log('Skipping PDF (binary, not parseable in GAS): ' + name);
-      return null;
-
-    } else if (
-      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-      mimeType === 'application/msword' ||
-      mimeType === 'application/vnd.ms-excel' ||
-      mimeType === 'application/vnd.ms-powerpoint'
-    ) {
-      Logger.log('Skipping uploaded Office file (binary, not parseable in GAS): ' + name);
-      return null;
-
-    } else {
-      // Unknown/unsupported type
-      Logger.log('Skipping unsupported file type ' + mimeType + ': ' + name);
-      return null;
     }
   } catch (err) {
-    Logger.log('Error extracting content from "' + name + '" (' + mimeType + '): ' + err.message);
+    Logger.log('Error reading "' + name + '": ' + err.message);
     return null;
   }
 
-  if (!content || !content.trim()) {
-    Logger.log('Empty content for: ' + name);
-    return null;
-  }
+  if (!content || !content.trim()) return null;
+  content = content.trim();
 
-  return {
-    id: id,
-    name: name,
-    mimeType: mimeType,
-    content: content.trim(),
-    charCount: content.length
-  };
+  // Cache per file (up to 100KB each, 6 hours)
+  try {
+    if (content.length <= 100000) cache.put(cacheKey, content, 21600);
+  } catch (e) {}
+
+  return content;
 }
 
 // --------------- Chat ---------------------------------------
@@ -342,11 +213,13 @@ function chat(userMessage, history) {
     throw new Error('ANTHROPIC_API_KEY not configured in Script Properties');
   }
 
-  var docs = getDocuments();
+  var files = getDocuments();
 
-  // Build document context
-  var docSections = docs.map(function(doc) {
-    return '--- FILE: ' + doc.name + ' ---\n' + doc.content;
+  // Fetch content for each file (cached per file after first load)
+  var docSections = [];
+  files.forEach(function(f) {
+    var content = getFileContent(f.id, f.name, f.mimeType);
+    if (content) docSections.push('--- FILE: ' + f.name + ' ---\n' + content);
   });
 
   var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
@@ -393,25 +266,33 @@ function chat(userMessage, history) {
   }
   messages.push({ role: 'user', content: userMessage });
 
+  // API endpoint and auth header are configurable for proxy wrappers (e.g. Fuelix)
+  var apiUrl = props.getProperty('ANTHROPIC_API_URL') || 'https://api.anthropic.com/v1/messages';
+  var apiKeyHeader = props.getProperty('ANTHROPIC_API_KEY_HEADER') || 'x-api-key';
+  var modelName = props.getProperty('ANTHROPIC_MODEL') || 'claude-sonnet-4-6';
+
   var payload = {
-    model: 'claude-sonnet-4-6',
+    model: modelName,
     max_tokens: 2048,
     system: systemPrompt,
     messages: messages
   };
 
+  var headers = {
+    'anthropic-version': '2023-06-01',
+    'content-type': 'application/json'
+  };
+  headers[apiKeyHeader] = apiKey;
+
   var options = {
     method: 'post',
     contentType: 'application/json',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
+    headers: headers,
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
 
-  var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', options);
+  var response = UrlFetchApp.fetch(apiUrl, options);
   var statusCode = response.getResponseCode();
   var body = response.getContentText();
 
@@ -427,7 +308,8 @@ function chat(userMessage, history) {
 
 function reloadCache() {
   var cache = CacheService.getUserCache();
-  cache.remove('drive_content');
+  // Clear file list; per-file content caches expire naturally or on next load
+  cache.remove('drive_file_list');
   return 'Cache cleared. Documents will reload on next request.';
 }
 
