@@ -49,7 +49,7 @@ function diagnose() {
 
 function doGet(e) {
   if (!isUserAllowed()) {
-    var email = Session.getActiveUser().getEmail();
+    var email = Session.getEffectiveUser().getEmail();
     var page = HtmlService.createHtmlOutputFromFile('login');
     page.setTitle('Access Denied — Drive Knowledge Base');
     // Pass email into the page via a simple token replacement
@@ -74,7 +74,7 @@ function isUserAllowed() {
     return true;
   }
 
-  var userEmail = Session.getActiveUser().getEmail().toLowerCase().trim();
+  var userEmail = Session.getEffectiveUser().getEmail().toLowerCase().trim();
   if (!userEmail) {
     return false;
   }
@@ -433,7 +433,7 @@ function reloadCache() {
 
 function getStatus() {
   var props = PropertiesService.getScriptProperties();
-  var userEmail = Session.getActiveUser().getEmail();
+  var userEmail = Session.getEffectiveUser().getEmail();
   var allowed = isUserAllowed();
   var apiKey = props.getProperty('ANTHROPIC_API_KEY');
   var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
