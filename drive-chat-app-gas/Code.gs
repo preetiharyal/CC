@@ -254,8 +254,8 @@ function chat(userMessage, history) {
     systemPrompt = header + truncated.join('\n\n');
   }
 
-  // Build messages array
-  var messages = [];
+  // Build messages array — system prompt goes as first message (OpenAI-compatible format)
+  var messages = [{ role: 'system', content: systemPrompt }];
   if (history && Array.isArray(history)) {
     for (var h = 0; h < history.length; h++) {
       var turn = history[h];
@@ -266,42 +266,35 @@ function chat(userMessage, history) {
   }
   messages.push({ role: 'user', content: userMessage });
 
-  // API endpoint and auth header are configurable for proxy wrappers (e.g. Fuelix)
-  var apiUrl = props.getProperty('ANTHROPIC_API_URL') || 'https://api.anthropic.com/v1/messages';
-  var apiKeyHeader = props.getProperty('ANTHROPIC_API_KEY_HEADER') || 'x-api-key';
   var modelName = props.getProperty('ANTHROPIC_MODEL') || 'claude-sonnet-4-6';
 
   var payload = {
     model: modelName,
     max_tokens: 2048,
-    system: systemPrompt,
     messages: messages
   };
-
-  var headers = {
-    'anthropic-version': '2023-06-01',
-    'content-type': 'application/json'
-  };
-  headers[apiKeyHeader] = apiKey;
 
   var options = {
     method: 'post',
     contentType: 'application/json',
-    headers: headers,
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json'
+    },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
 
-  var response = UrlFetchApp.fetch(apiUrl, options);
+  var response = UrlFetchApp.fetch('https://api.fuelix.ai/v1/chat/completions', options);
   var statusCode = response.getResponseCode();
   var body = response.getContentText();
 
   if (statusCode !== 200) {
-    throw new Error('Anthropic API error ' + statusCode + ': ' + body);
+    throw new Error('Fuelix API error ' + statusCode + ': ' + body);
   }
 
   var json = JSON.parse(body);
-  return json.content[0].text;
+  return json.choices[0].message.content;
 }
 
 // --------------- Utilities ----------------------------------
