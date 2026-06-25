@@ -119,7 +119,7 @@ function getDocuments() {
   var serialized = JSON.stringify(files);
   try {
     if (serialized.length <= 100000) {
-      cache.put('drive_file_list', serialized, 3600);
+      cache.put('drive_file_list', serialized, 21600);
     }
   } catch (e) {}
 
@@ -198,7 +198,7 @@ function getFileContent(fileId, name, mimeType) {
 
   // Cache per file (up to 100KB each, 6 hours)
   try {
-    if (content.length <= 100000) cache.put(cacheKey, content, 3600);
+    if (content.length <= 100000) cache.put(cacheKey, content, 21600);
   } catch (e) {}
 
   return content;
