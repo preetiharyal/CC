@@ -49,7 +49,7 @@ function diagnose() {
 
 function doGet(e) {
   if (!isUserAllowed()) {
-    var email = Session.getEffectiveUser().getEmail();
+    var email = Session.getActiveUser().getEmail();
     var page = HtmlService.createHtmlOutputFromFile('login');
     page.setTitle('Access Denied — Drive Knowledge Base');
     // Pass email into the page via a simple token replacement
@@ -74,7 +74,7 @@ function isUserAllowed() {
     return true;
   }
 
-  var userEmail = Session.getEffectiveUser().getEmail().toLowerCase().trim();
+  var userEmail = Session.getActiveUser().getEmail().toLowerCase().trim();
   if (!userEmail) {
     return false;
   }
@@ -100,7 +100,7 @@ function isUserAllowed() {
 // --------------- Document loading ---------------------------
 
 function getDocuments() {
-  var cache = CacheService.getScriptCache();
+  var cache = CacheService.getUserCache();
   var cached = cache.get('drive_content');
   if (cached) {
     try {
@@ -426,14 +426,14 @@ function chat(userMessage, history) {
 // --------------- Utilities ----------------------------------
 
 function reloadCache() {
-  var cache = CacheService.getScriptCache();
+  var cache = CacheService.getUserCache();
   cache.remove('drive_content');
   return 'Cache cleared. Documents will reload on next request.';
 }
 
 function getStatus() {
   var props = PropertiesService.getScriptProperties();
-  var userEmail = Session.getEffectiveUser().getEmail();
+  var userEmail = Session.getActiveUser().getEmail();
   var allowed = isUserAllowed();
   var apiKey = props.getProperty('ANTHROPIC_API_KEY');
   var folderIdsRaw = props.getProperty('FOLDER_IDS') || '';
