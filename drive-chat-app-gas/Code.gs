@@ -137,7 +137,54 @@ function getDocuments() {
 }
 
 function collectFromFolder(folderId, docs) {
-  listFilesRecursiveById(folderId, docs);
+  // Shared drive roots (IDs starting with "0A") need corpora:'drive' instead of parent query
+  var isSharedDriveRoot = folderId.indexOf('0A') === 0;
+  if (isSharedDriveRoot) {
+    listSharedDriveContents(folderId, docs);
+  } else {
+    listFilesRecursiveById(folderId, docs);
+  }
+}
+
+// For shared drive roots: list all files in the drive
+function listSharedDriveContents(driveId, docs) {
+  var pageToken = null;
+  do {
+    var params = {
+      corpora: 'drive',
+      driveId: driveId,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+      q: 'trashed = false',
+      fields: 'nextPageToken, files(id, name, mimeType)',
+      pageSize: 100
+    };
+    if (pageToken) params.pageToken = pageToken;
+
+    var response;
+    try {
+      response = Drive.Files.list(params);
+    } catch (err) {
+      Logger.log('Shared drive list error for ' + driveId + ': ' + err.message);
+      return;
+    }
+
+    var items = response.files || [];
+    Logger.log('Shared drive ' + driveId + ': found ' + items.length + ' items');
+    items.forEach(function(item) {
+      if (item.mimeType !== 'application/vnd.google-apps.folder') {
+        try {
+          var file = DriveApp.getFileById(item.id);
+          var doc = extractFileContent(file);
+          if (doc) docs.push(doc);
+        } catch (e) {
+          Logger.log('Could not open file ' + item.name + ': ' + e.message);
+        }
+      }
+    });
+
+    pageToken = response.nextPageToken;
+  } while (pageToken);
 }
 
 // Uses Advanced Drive Service (Drive API v3) to support shared drives
