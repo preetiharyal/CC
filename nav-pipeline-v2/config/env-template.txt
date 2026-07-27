@@ -1,0 +1,116 @@
+# Nav Pipeline v2 - Environment Configuration Template
+
+# Copy this file to .env.local and fill in your actual values
+# NEVER commit .env files to git with actual credentials
+
+# ============================================================================
+# ANTHROPIC / CLAUDE API
+# ============================================================================
+
+# Your Anthropic API key - get from https://console.anthropic.com
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Claude model IDs (available: claude-opus-5, claude-sonnet-5, etc.)
+CLAUDE_SPEC_MODEL=claude-opus-5
+CLAUDE_BLUEPRINT_MODEL=claude-opus-5
+
+# Token limits for different operations
+SPEC_GENERATION_MAX_TOKENS=4000
+BLUEPRINT_EXTRACTION_MAX_TOKENS=2000
+
+# ============================================================================
+# SERVICENOW INSTANCE
+# ============================================================================
+
+# Your ServiceNow instance details
+SERVICENOW_INSTANCE_URL=https://your-instance.service-now.com
+SERVICENOW_INSTANCE_NAME=your-instance
+
+# Service account credentials (the account that writes specs)
+SERVICENOW_USERNAME=nav_pipeline_agent
+SERVICENOW_PASSWORD=your-secure-password
+
+# Alternative: OAuth2 credentials (if your instance uses OAuth)
+SERVICENOW_CLIENT_ID=your-client-id
+SERVICENOW_CLIENT_SECRET=your-client-secret
+SERVICENOW_OAUTH_TOKEN_URL=https://your-instance.service-now.com/oauth_token.do
+
+# Service account that reads from ServiceNow (can be same as above)
+SERVICENOW_READ_USERNAME=nav_pipeline_agent
+SERVICENOW_READ_PASSWORD=your-secure-password
+
+# ============================================================================
+# N8N CONFIGURATION
+# ============================================================================
+
+# n8n instance URL (where your workflows run)
+N8N_BASE_URL=https://your-n8n.com
+
+# Webhook authentication (optional but recommended)
+# Generate with: openssl rand -hex 32
+WEBHOOK_AUTH_TOKEN=your-random-token-here
+
+# n8n credentials (if you need to manage them programmatically)
+N8N_API_KEY=your-n8n-api-key
+
+# ============================================================================
+# SERVICENOW DOCUMENT REFERENCES
+# ============================================================================
+
+# Knowledge article sys_ids for context documents
+DESIGN_PRINCIPLES_ARTICLE_ID=12345abcde
+STATIC_LICENSE_DOC_ID=67890fghij
+
+# Default project for testing (optional)
+TEST_PROJECT_ID=test_project_123
+
+# ============================================================================
+# LOGGING & MONITORING
+# ============================================================================
+
+# Log level: debug, info, warn, error
+LOG_LEVEL=info
+
+# Send failure notifications (email, Slack, etc.)
+NOTIFY_ON_FAILURE=true
+FAILURE_NOTIFICATION_EMAIL=your-team@company.com
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/your/webhook/url
+
+# ============================================================================
+# PERFORMANCE TUNING
+# ============================================================================
+
+# Maximum number of precedent specs to include in context (0-50)
+# More specs = better consistency, higher token cost
+MAX_PRECEDENT_SPECS=10
+
+# Include full blueprint or only relevant sections
+# true = full blueprint (more context), false = relevant sections only (lower cost)
+INCLUDE_FULL_BLUEPRINT=false
+
+# Request timeout in milliseconds
+SERVICENOW_REQUEST_TIMEOUT=30000
+CLAUDE_API_TIMEOUT=60000
+
+# ============================================================================
+# DEVELOPMENT / TESTING
+# ============================================================================
+
+# Test mode: set to true to dry-run without writing to ServiceNow
+TEST_MODE=false
+
+# Mock mode: use hardcoded responses instead of real API calls (for testing)
+MOCK_MODE=false
+
+# Verbose output for debugging
+DEBUG=false
+
+# ============================================================================
+# GOVERNANCE
+# ============================================================================
+
+# Frequency of blueprint governance review: "weekly", "monthly", "quarterly"
+BLUEPRINT_GOVERNANCE_CADENCE=monthly
+
+# Email for blueprint governance notifications
+GOVERNANCE_EMAIL=architect@company.com

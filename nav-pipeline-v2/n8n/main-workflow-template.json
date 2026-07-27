@@ -1,0 +1,267 @@
+{
+  "name": "Nav Pipeline - Generate Technical Specification",
+  "description": "Main workflow for generating technical specifications from ServiceNow stories",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "parameters": {
+        "path": "nav-pipeline-main",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "webhookId": "GENERATE_YOUR_OWN"
+    },
+    {
+      "name": "Parse Payload",
+      "type": "n8n-nodes-base.set",
+      "parameters": {
+        "assignments": {
+          "simple": [
+            {
+              "name": "story_id",
+              "value": "={{$json.body.sys_id}}"
+            },
+            {
+              "name": "story_number",
+              "value": "={{$json.body.number}}"
+            },
+            {
+              "name": "short_description",
+              "value": "={{$json.body.short_description}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$json.body.description}}"
+            },
+            {
+              "name": "acceptance_criteria",
+              "value": "={{$json.body.acceptance_criteria}}"
+            },
+            {
+              "name": "project_id",
+              "value": "={{$json.body.project}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Context - Project Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{$secrets.SERVICENOW_INSTANCE_URL}}/api/now/table/project",
+        "method": "GET",
+        "authentication": "basicAuth",
+        "basicAuth": "CONFIGURE_IN_CREDENTIALS",
+        "qs": {
+          "sysparm_query": "sys_id={{$json.project_id}}",
+          "sysparm_limit": "1"
+        }
+      }
+    },
+    {
+      "name": "Context - Knowledge Articles",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{$secrets.SERVICENOW_INSTANCE_URL}}/api/now/table/kb_knowledge",
+        "method": "GET",
+        "authentication": "basicAuth",
+        "basicAuth": "CONFIGURE_IN_CREDENTIALS",
+        "qs": {
+          "sysparm_query": "related_to={{$json.project_id}}^ORarticle=true",
+          "sysparm_limit": "10"
+        }
+      }
+    },
+    {
+      "name": "Context - Module Entitlements",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{$secrets.SERVICENOW_INSTANCE_URL}}/api/now/table/sys_plugins",
+        "method": "GET",
+        "authentication": "basicAuth",
+        "basicAuth": "CONFIGURE_IN_CREDENTIALS",
+        "qs": {
+          "sysparm_query": "active=true",
+          "sysparm_limit": "50"
+        }
+      }
+    },
+    {
+      "name": "Context - Story Attachments",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{$secrets.SERVICENOW_INSTANCE_URL}}/api/now/table/sys_attachment",
+        "method": "GET",
+        "authentication": "basicAuth",
+        "basicAuth": "CONFIGURE_IN_CREDENTIALS",
+        "qs": {
+          "sysparm_query": "table_name=story^table_sys_id={{$json.story_id}}",
+          "sysparm_limit": "20"
+        }
+      }
+    },
+    {
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.function",
+      "parameters": {
+        "functionCode": "// This function combines all context into the prompt for Claude\n// Returns: { systemPrompt, userMessage }\n\nconst storyNumber = $json.story_number;\nconst shortDesc = $json.short_description;\nconst description = $json.description;\nconst acceptanceCriteria = $json.acceptance_criteria;\n\nconst projectContext = JSON.stringify($json.context_projects, null, 2);\nconst knowledgeArticles = JSON.stringify($json.context_knowledge_articles, null, 2);\nconst plugins = JSON.stringify($json.context_plugins, null, 2);\n\nconst systemPrompt = `You are a ServiceNow solutions architect generating a technical specification for a developer.\n\nYou will be given:\n1. STORY: the story's description and acceptance criteria\n2. PROJECT_CONTEXT: knowledge articles and information about the project\n3. DESIGN_PRINCIPLES: TELUS's ServiceNow architecture standards\n4. MODULE_ENTITLEMENTS: which ServiceNow modules are active\n\nRULES:\n- Only propose solutions using confirmed active modules\n- Follow patterns from previous work in this project\n- Flag any gaps or uncertain items\n- Be specific and actionable for developers\n\nOUTPUT FORMAT:\n1. Summary — 2-3 sentences\n2. Assumptions & Flags — any concerns\n3. Affected Components — tables, rules, flows, etc.\n4. Detailed Changes — step-by-step implementation\n5. Data Flow — how data moves through the system\n6. Test Considerations — what to validate\n7. Dependencies — blockers and dependencies`;\n\nconst userMessage = `STORY:\n${storyNumber} — ${shortDesc}\n\n${description}\n\nAcceptance Criteria: ${acceptanceCriteria}\n\n\nPROJECT_CONTEXT:\n${projectContext}\n\n\nACTIVE_MODULES:\n${plugins}\n\n\nDESIGN_PRINCIPLES:\nFollow your organization's ServiceNow standards for:\n- Naming conventions\n- Table extensions\n- Business Rule patterns\n- Integration approaches`;\n\nreturn {\n  systemPrompt: systemPrompt,\n  userMessage: userMessage\n};"
+      }
+    },
+    {
+      "name": "Call Claude API",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "headers": {
+          "x-api-key": "={{$secrets.ANTHROPIC_API_KEY}}",
+          "anthropic-version": "2023-06-01"
+        },
+        "sendBody": true,
+        "body": {
+          "model": "claude-opus-5",
+          "max_tokens": 4000,
+          "temperature": 0,
+          "system": "={{$json.systemPrompt}}",
+          "messages": [
+            {
+              "role": "user",
+              "content": "={{$json.userMessage}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Extract Claude Response",
+      "type": "n8n-nodes-base.set",
+      "parameters": {
+        "assignments": {
+          "simple": [
+            {
+              "name": "technical_specification",
+              "value": "={{$json.content[0].text}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Write to ServiceNow",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{$secrets.SERVICENOW_INSTANCE_URL}}/api/now/table/story/{{$json.story_id}}",
+        "method": "PATCH",
+        "authentication": "basicAuth",
+        "basicAuth": "CONFIGURE_IN_CREDENTIALS",
+        "sendBody": true,
+        "body": {
+          "technical_specification": "={{$json.technical_specification}}"
+        }
+      }
+    },
+    {
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "parameters": {
+        "responseCode": 200,
+        "responseBody": {
+          "status": "success",
+          "message": "Specification generated and written to ServiceNow",
+          "story_id": "={{$json.story_id}}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": [
+      {
+        "node": "Parse Payload",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Parse Payload": [
+      {
+        "node": "Context - Project Info",
+        "type": "main",
+        "index": [0, 0]
+      },
+      {
+        "node": "Context - Knowledge Articles",
+        "type": "main",
+        "index": [0, 0]
+      },
+      {
+        "node": "Context - Module Entitlements",
+        "type": "main",
+        "index": [0, 0]
+      },
+      {
+        "node": "Context - Story Attachments",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Context - Project Info": [
+      {
+        "node": "Build Prompt",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Context - Knowledge Articles": [
+      {
+        "node": "Build Prompt",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Context - Module Entitlements": [
+      {
+        "node": "Build Prompt",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Context - Story Attachments": [
+      {
+        "node": "Build Prompt",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Build Prompt": [
+      {
+        "node": "Call Claude API",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Call Claude API": [
+      {
+        "node": "Extract Claude Response",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Extract Claude Response": [
+      {
+        "node": "Write to ServiceNow",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ],
+    "Write to ServiceNow": [
+      {
+        "node": "Success Response",
+        "type": "main",
+        "index": [0, 0]
+      }
+    ]
+  },
+  "notes": "This is a template. See n8n/SETUP.md for detailed configuration instructions. Key points:\n1. Replace CONFIGURE_IN_CREDENTIALS with actual credential selections in n8n\n2. Configure BasicAuth credentials for ServiceNow\n3. Configure Header Auth for Anthropic API\n4. The Build Prompt function node needs JavaScript code (see n8n/SETUP.md)\n5. All context gathering nodes (Project Info, Knowledge Articles, etc.) run in parallel\n6. Ensure error handling is added to each node\n7. Add logging for debugging"
+}
