@@ -1,8 +1,8 @@
-# Nav Pipeline v2 - Deployment Guide
+# Arch Jr v2 - Deployment Guide
 
 ## Overview
 
-This guide walks you through deploying Nav Pipeline v2 to your production environment. The deployment has two main phases: **ServiceNow Configuration** and **n8n Workflow Deployment**.
+This guide walks you through deploying Arch Jr v2 to your production environment. The deployment has two main phases: **ServiceNow Configuration** and **n8n Workflow Deployment**.
 
 ## Phase 1: ServiceNow Configuration (Day 1-2)
 
@@ -26,10 +26,10 @@ Follow `./servicenow/SETUP.md` Step 2:
 **Time**: 30 minutes
 
 Follow `./servicenow/SETUP.md` Step 3:
-- [ ] Create Business Rule: `Nav Pipeline - Generate Spec on Assignment`
+- [ ] Create Business Rule: `Arch Jr - Generate Spec on Assignment`
   - Condition: `assigned_to` changes to agent service account
   - Action: POST to n8n webhook
-- [ ] Create Business Rule: `Nav Pipeline - Update Blueprint on Story Close`
+- [ ] Create Business Rule: `Arch Jr - Update Blueprint on Story Close`
   - Condition: `technical_specification` not empty AND state changes to Closed
   - Action: POST to n8n webhook for blueprint update
 
@@ -66,8 +66,8 @@ Follow `./n8n/SETUP.md` Step 1:
 **Time**: 45 minutes
 
 Follow `./n8n/SETUP.md` Step 2:
-- [ ] Create new workflow: `Nav Pipeline - Generate Technical Specification`
-- [ ] Add Webhook trigger node (path: `/nav-pipeline-main`)
+- [ ] Create new workflow: `Arch Jr - Generate Technical Specification`
+- [ ] Add Webhook trigger node (path: `/arch-jr-main`)
 - [ ] Add context gathering nodes (4 parallel branches):
   - Project context (query project record + knowledge articles + attachments)
   - Design principles (fetch static document)
@@ -83,8 +83,8 @@ Follow `./n8n/SETUP.md` Step 2:
 **Time**: 30 minutes
 
 Follow `./n8n/SETUP.md` Step 3:
-- [ ] Create new workflow: `Nav Pipeline - Update Project Blueprint`
-- [ ] Add Webhook trigger (path: `/nav-pipeline-blueprint-update`)
+- [ ] Create new workflow: `Arch Jr - Update Project Blueprint`
+- [ ] Add Webhook trigger (path: `/arch-jr-blueprint-update`)
 - [ ] Add node to fetch current blueprint from ServiceNow
 - [ ] Add function node to build extraction prompt
 - [ ] Add HTTP request for Claude extraction call
@@ -105,9 +105,9 @@ Follow `./config/env-template.txt`:
 **Time**: 10 minutes
 
 - [ ] Copy webhook URL from main workflow
-- [ ] Update Business Rule `Nav Pipeline - Generate Spec on Assignment` with exact URL
+- [ ] Update Business Rule `Arch Jr - Generate Spec on Assignment` with exact URL
 - [ ] Copy webhook URL from blueprint workflow
-- [ ] Update Business Rule `Nav Pipeline - Update Blueprint on Story Close` with exact URL
+- [ ] Update Business Rule `Arch Jr - Update Blueprint on Story Close` with exact URL
 
 ### Step 2.6: Activate Workflows
 **Time**: 5 minutes

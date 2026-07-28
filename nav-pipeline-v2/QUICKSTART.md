@@ -1,4 +1,4 @@
-# Nav Pipeline v2 - Quick Start Guide (AG01_arch)
+# Arch Jr v2 - Quick Start Guide (AG01_arch)
 
 **Total Setup Time**: 5-6 hours  
 **Complexity**: Intermediate (requires ServiceNow and n8n knowledge)  
@@ -61,7 +61,7 @@ Key tasks:
 4. Activate both workflows
 5. Update ServiceNow Business Rules with webhook URLs
 
-**Your webhook URL** will look like: `https://your-n8n.com/webhook/nav-pipeline-main`
+**Your webhook URL** will look like: `https://your-n8n.com/webhook/arch-jr-main`
 
 ---
 

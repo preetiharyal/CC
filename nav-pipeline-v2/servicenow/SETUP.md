@@ -58,7 +58,7 @@ If `technical_specification` field doesn't exist:
 
 Create Business Rule for spec generation when story assigned to agent:
 
-**Name**: `Nav Pipeline - Generate Spec on Assignment`
+**Name**: `Arch Jr - Generate Spec on Assignment`
 
 **Table**: Story
 
@@ -76,7 +76,7 @@ Create Business Rule for spec generation when story assigned to agent:
 **Action**: Execute REST Outbound Integration
 
 - **REST Message**: Create new or use existing REST Message
-- **Function**: POST to `https://your-n8n-instance.com/webhook/nav-pipeline-main`
+- **Function**: POST to `https://your-n8n-instance.com/webhook/arch-jr-main`
 - **Payload** (JSON):
 ```json
 {
@@ -98,7 +98,7 @@ Create Business Rule for spec generation when story assigned to agent:
 
 Create Business Rule for blueprint extraction when story is closed:
 
-**Name**: `Nav Pipeline - Update Blueprint on Story Close`
+**Name**: `Arch Jr - Update Blueprint on Story Close`
 
 **Table**: Story
 
@@ -118,7 +118,7 @@ current.technical_specification !== ''
 **Action**: Execute REST Outbound Integration
 
 - **REST Message**: Similar to above or reuse
-- **Function**: POST to `https://your-n8n-instance.com/webhook/nav-pipeline-blueprint-update`
+- **Function**: POST to `https://your-n8n-instance.com/webhook/arch-jr-blueprint-update`
 - **Payload** (JSON):
 ```json
 {
@@ -176,8 +176,8 @@ In ServiceNow:
 
 1. Navigate to **Integrations > Outbound > REST Message**
 2. Create new REST Message:
-   - **Name**: `Nav Pipeline - Main Webhook`
-   - **Endpoint**: `https://your-n8n-instance.com/webhook/nav-pipeline-main`
+   - **Name**: `Arch Jr - Main Webhook`
+   - **Endpoint**: `https://your-n8n-instance.com/webhook/arch-jr-main`
    - **HTTP Method**: POST
    - **Authentication**: Basic Auth (if needed) or Headers
    - **Headers**:
@@ -190,7 +190,7 @@ In ServiceNow:
 
 1. **Verify service account exists**: System Security > Users > Search for `AG01_arch`
 2. **Verify custom field exists**: System Definition > Tables > Story > Fields > Find `technical_specification`
-3. **Verify Business Rules exist**: System Policy > Business Rules (search for "Nav Pipeline")
+3. **Verify Business Rules exist**: System Policy > Business Rules (search for "Arch Jr")
 4. **Test REST Message**: Open the REST Message, click "Test" with sample payload
 
 ## Step 7: Security Considerations

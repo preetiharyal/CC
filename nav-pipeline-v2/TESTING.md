@@ -12,13 +12,13 @@
 ### Test 1.1: Manual Webhook Trigger
 
 1. **In n8n**:
-   - Open workflow: `Nav Pipeline - Generate Technical Specification`
+   - Open workflow: `Arch Jr - Generate Technical Specification`
    - Click "Test Webhook" button
    - You'll see a webhook URL displayed
 
 2. **Test webhook with curl** (or Postman):
    ```bash
-   curl -X POST https://your-n8n.com/webhook/nav-pipeline-main \
+   curl -X POST https://your-n8n.com/webhook/arch-jr-main \
      -H "Content-Type: application/json" \
      -d '{
        "sys_id": "test123456789",

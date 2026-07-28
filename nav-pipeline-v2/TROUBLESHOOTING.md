@@ -11,7 +11,7 @@
 1. **Verify Business Rule exists**
    ```
    In ServiceNow: System Policy > Business Rules
-   Search for "Nav Pipeline"
+   Search for "Arch Jr"
    Status should be "Active"
    ```
 
@@ -39,7 +39,7 @@
    - It should match what's in the ServiceNow REST Message
    - Test with curl:
      ```bash
-     curl -X POST https://your-n8n.com/webhook/nav-pipeline-main \
+     curl -X POST https://your-n8n.com/webhook/arch-jr-main \
        -H "Content-Type: application/json" \
        -d '{"test": "payload"}'
      ```
@@ -286,7 +286,7 @@
    - sys_id should be discoverable via query `title = "*Blueprint"` AND `category = "Technical Blueprints"`
 
 3. **Verify n8n blueprint workflow**
-   - Open workflow: `Nav Pipeline - Update Project Blueprint`
+   - Open workflow: `Arch Jr - Update Project Blueprint`
    - Check if it's active (toggle switch)
    - Test webhook manually
 

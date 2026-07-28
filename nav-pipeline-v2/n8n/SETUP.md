@@ -43,14 +43,14 @@ In n8n:
 ### 2.1 Import or Create Workflow
 
 1. In n8n, click **Create New Workflow** or import `./main-workflow.json`
-2. **Workflow Name**: `Nav Pipeline - Generate Technical Specification`
+2. **Workflow Name**: `Arch Jr - Generate Technical Specification`
 
 ### 2.2 Configure Webhook Trigger Node
 
 1. **Add Node > Webhooks > Webhook**
 2. **Name**: `Main Webhook`
 3. **HTTP Method**: POST
-4. **Path**: `/nav-pipeline-main`
+4. **Path**: `/arch-jr-main`
 5. **Authentication**: (optional) Header validation for token
 6. **Click Test** to generate webhook URL
 7. Copy webhook URL → update in ServiceNow Business Rule
@@ -163,13 +163,13 @@ Each branch queries a different ServiceNow table. All run in parallel, resolving
 
 ### 3.1 Import or Create Workflow
 
-1. **Create New Workflow**: `Nav Pipeline - Update Project Blueprint`
+1. **Create New Workflow**: `Arch Jr - Update Project Blueprint`
 2. Import `./blueprint-update-workflow.json` or create manually
 
 ### 3.2 Configure Webhook Trigger
 
 1. **Add Node > Webhooks > Webhook**
-2. **Path**: `/nav-pipeline-blueprint-update`
+2. **Path**: `/arch-jr-blueprint-update`
 
 ### 3.3 Configure Blueprint Extraction
 
@@ -280,7 +280,7 @@ LOG_LEVEL=info
 **Webhook not receiving calls?**
 - Verify Business Rule condition is correct
 - Check n8n webhook URL matches exactly
-- Test with curl: `curl -X POST https://your-n8n.com/webhook/nav-pipeline-main -d '...'`
+- Test with curl: `curl -X POST https://your-n8n.com/webhook/arch-jr-main -d '...'`
 
 **Claude API errors?**
 - Check API key is valid

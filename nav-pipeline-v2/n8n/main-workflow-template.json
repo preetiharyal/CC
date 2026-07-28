@@ -1,12 +1,12 @@
 {
-  "name": "Nav Pipeline - Generate Technical Specification",
+  "name": "Arch Jr - Generate Technical Specification",
   "description": "Main workflow for generating technical specifications from ServiceNow stories",
   "nodes": [
     {
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "parameters": {
-        "path": "nav-pipeline-main",
+        "path": "arch-jr-main",
         "httpMethod": "POST",
         "responseMode": "onReceived"
       },

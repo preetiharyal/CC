@@ -1,4 +1,4 @@
-# Nav Pipeline v2 - Environment Configuration Template
+# Arch Jr v2 - Environment Configuration Template
 
 # Copy this file to .env.local and fill in your actual values
 # NEVER commit .env files to git with actual credentials
