@@ -1,6 +1,6 @@
-# Nav Pipeline v2 - Implementation Guide
+# Nav Pipeline v2 - Implementation Guide (AG01_arch)
 
-AI-driven technical specification generation for ServiceNow stories with self-updating architecture blueprints.
+AI-driven technical specification generation for ServiceNow stories with self-updating architecture blueprints. Powered by AG01_arch, a ServiceNow solutions architect agent.
 
 ## Overview
 

@@ -106,10 +106,10 @@ Each branch queries a different ServiceNow table. All run in parallel, resolving
 
 2. **Extract text from attachments** (same as Branch A)
 
-### 2.4 Configure Claude API Call
+### 2.4 Configure Claude API Call (AG01_arch)
 
 1. **Add Node > HTTP Request**
-   - **Name**: `Claude Spec Generation`
+   - **Name**: `Claude Spec Generation (AG01_arch)`
    - **Method**: POST
    - **URL**: `https://api.anthropic.com/v1/messages`
    - **Authentication**: Use Anthropic API credential

@@ -1,11 +1,12 @@
-# Nav Pipeline v2 - Quick Start Guide
+# Nav Pipeline v2 - Quick Start Guide (AG01_arch)
 
 **Total Setup Time**: 5-6 hours  
-**Complexity**: Intermediate (requires ServiceNow and n8n knowledge)
+**Complexity**: Intermediate (requires ServiceNow and n8n knowledge)  
+**Agent**: AG01_arch (ServiceNow Solutions Architect AI Agent)
 
 ## What You're Building
 
-An AI-powered system that automatically generates technical specifications for ServiceNow stories when they're assigned to an agent. The system learns from previous specs and improves over time.
+An AI-powered system that automatically generates technical specifications for ServiceNow stories when they're assigned to an agent. AG01_arch, your ServiceNow solutions architect agent, learns from previous specs and improves over time.
 
 ```
 Story assigned to agent
