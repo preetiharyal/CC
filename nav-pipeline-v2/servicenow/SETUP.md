@@ -23,21 +23,254 @@ In ServiceNow admin:
    - Read on sys_plugins (for module entitlements)
    - Read on sys_attachment
 
-### 1.2 Create or Use Existing Role
+### 1.2 Create Custom Role for AG01_arch
 
-If creating a custom role (recommended for least privilege):
+**Least-privilege approach**: Create a dedicated role instead of using admin.
+
 1. Navigate to **System Security > Roles**
-2. Create new role: `ag01_arch_writer`
-3. Add ACLs:
-   ```
-   Table: story, Operation: read, All fields
-   Table: story, Operation: write, Field: technical_specification only
-   Table: project, Operation: read, All fields
-   Table: kb_knowledge, Operation: read, All fields
-   Table: sys_attachment, Operation: read, All fields
-   Table: sys_plugins, Operation: read, All fields
-   Table: cmdb_ci_service, Operation: read, All fields
-   ```
+2. Click **New**
+3. Enter:
+   - **Name**: `ag01_arch_writer`
+   - **Description**: `Role for Arch Jr agent - read existing config, write specs only`
+
+4. **Save** the role
+
+5. Now add ACLs to this role. For each ACL below:
+   - Click **New** in the ACL section
+   - Fill in Table, Operation, Field
+   - Leave other options as default
+   - **Save**
+
+#### ACLs to Add (Copy/Paste these exactly)
+
+**WRITE ACLs** (minimal):
+```
+1. Table: story
+   Operation: write
+   Fields: technical_specification
+   
+2. Table: kb_knowledge
+   Operation: write
+   (needed for blueprint updates)
+```
+
+**READ ACLs** (extensive - to understand existing systems):
+
+**Core Tables:**
+```
+3. Table: story
+   Operation: read
+   Fields: (all)
+
+4. Table: project
+   Operation: read
+   Fields: (all)
+
+5. Table: epic
+   Operation: read
+   Fields: (all)
+```
+
+**Knowledge & Documentation:**
+```
+6. Table: kb_knowledge
+   Operation: read
+   Fields: (all)
+   
+7. Table: kb_knowledge_base
+   Operation: read
+   Fields: (all)
+```
+
+**System Configuration & Attachments:**
+```
+8. Table: sys_attachment
+   Operation: read
+   Fields: (all)
+
+9. Table: sys_plugins
+   Operation: read
+   Fields: (all)
+   
+10. Table: sys_app_application
+    Operation: read
+    Fields: (all)
+```
+
+**Services & Infrastructure:**
+```
+11. Table: cmdb_ci_service
+    Operation: read
+    Fields: (all)
+
+12. Table: cmdb_ci_application
+    Operation: read
+    Fields: (all)
+```
+
+**Automation & Configuration:**
+```
+13. Table: sys_script
+    Operation: read
+    Fields: (all)
+    (to discover existing scripts)
+
+14. Table: sys_script_include
+    Operation: read
+    Fields: (all)
+    (to understand existing functions)
+
+15. Table: sysevent_register
+    Operation: read
+    Fields: (all)
+    (to see Business Rules/Flows)
+
+16. Table: wf_workflow
+    Operation: read
+    Fields: (all)
+    (to discover existing workflows)
+
+17. Table: wf_activity
+    Operation: read
+    Fields: (all)
+    (to understand workflow patterns)
+```
+
+**Update Sets & Deployment:**
+```
+18. Table: sys_update_set
+    Operation: read
+    Fields: (all)
+    (to understand what's deployed)
+
+19. Table: sys_update_xml
+    Operation: read
+    Fields: (all)
+    (to see component changes)
+```
+
+**Tables & Fields Structure:**
+```
+20. Table: sys_db_object
+    Operation: read
+    Fields: (all)
+    (to discover custom tables)
+
+21. Table: sys_db_column
+    Operation: read
+    Fields: (all)
+    (to discover custom fields)
+```
+
+**REST & Integration:**
+```
+22. Table: sys_rest_message
+    Operation: read
+    Fields: (all)
+    (to understand integrations)
+
+23. Table: sys_rest_message_function
+    Operation: read
+    Fields: (all)
+
+24. Table: sys_ws_operation
+    Operation: read
+    Fields: (all)
+```
+
+**Assignments & Routing:**
+```
+25. Table: sys_assignment
+    Operation: read
+    Fields: (all)
+    (to understand assignment rules)
+
+26. Table: sn_assign_lookup
+    Operation: read
+    Fields: (all)
+```
+
+**Reference & Lookup:**
+```
+27. Table: sys_reference
+    Operation: read
+    Fields: (all)
+    (for field relationships)
+
+28. Table: sys_choice
+    Operation: read
+    Fields: (all)
+    (for field options)
+```
+
+### Quick Add ACLs via Script (Alternative Method)
+
+If you prefer to use a script instead of clicking each time:
+
+1. Navigate to **System Security > ACL**
+2. Click **New** for each ACL above
+3. OR copy this script to a background script executor:
+
+```javascript
+var role = new GlideRecord('sys_role');
+role.addQuery('name', 'ag01_arch_writer');
+role.query();
+
+if (role.next()) {
+  var tables = [
+    // Write access
+    ['story', 'write', 'technical_specification'],
+    ['kb_knowledge', 'write', ''],
+    
+    // Read access (all fields)
+    ['story', 'read', ''],
+    ['project', 'read', ''],
+    ['epic', 'read', ''],
+    ['kb_knowledge', 'read', ''],
+    ['kb_knowledge_base', 'read', ''],
+    ['sys_attachment', 'read', ''],
+    ['sys_plugins', 'read', ''],
+    ['sys_app_application', 'read', ''],
+    ['cmdb_ci_service', 'read', ''],
+    ['cmdb_ci_application', 'read', ''],
+    ['sys_script', 'read', ''],
+    ['sys_script_include', 'read', ''],
+    ['sysevent_register', 'read', ''],
+    ['wf_workflow', 'read', ''],
+    ['wf_activity', 'read', ''],
+    ['sys_update_set', 'read', ''],
+    ['sys_update_xml', 'read', ''],
+    ['sys_db_object', 'read', ''],
+    ['sys_db_column', 'read', ''],
+    ['sys_rest_message', 'read', ''],
+    ['sys_rest_message_function', 'read', ''],
+    ['sys_ws_operation', 'read', ''],
+    ['sys_assignment', 'read', ''],
+    ['sn_assign_lookup', 'read', '']
+  ];
+  
+  tables.forEach(function(acl) {
+    var newAcl = new GlideRecord('sys_security_acl');
+    newAcl.table = acl[0];
+    newAcl.operation = acl[1];
+    newAcl.field = acl[2];
+    newAcl.role = role.sys_id;
+    newAcl.insert();
+  });
+  
+  gs.info('ACLs created for ag01_arch_writer role');
+}
+```
+
+### Assign Role to AG01_arch User
+
+1. Navigate to **System Security > Users**
+2. Search for **AG01_arch**
+3. Open the user record
+4. Scroll to **Roles** section
+5. Click **Edit**
+6. Add role: `ag01_arch_writer`
+7. **Save**
 
 ## Step 2: Add Custom Field to Story Table
 
