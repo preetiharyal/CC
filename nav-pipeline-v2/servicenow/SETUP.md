@@ -13,10 +13,10 @@
 In ServiceNow admin:
 1. Navigate to **System Security > Users**
 2. Create new user:
-   - **User ID**: `nav_pipeline_agent` (or your preference)
-   - **First name**: `Nav Pipeline`
-   - **Last name**: `Agent`
-   - **Email**: `nav.pipeline@yourcompany.com`
+   - **User ID**: `AG01_arch` (or your preference)
+   - **First name**: `AG01`
+   - **Last name**: `Architect`
+   - **Email**: `ag01-arch@yourcompany.com`
 3. Assign role that allows:
    - Read on all required tables (Story, Project, Knowledge Article, etc.)
    - Write on Story table's `technical_specification` field only
@@ -27,7 +27,7 @@ In ServiceNow admin:
 
 If creating a custom role (recommended for least privilege):
 1. Navigate to **System Security > Roles**
-2. Create new role: `nav_pipeline_writer`
+2. Create new role: `ag01_arch_writer`
 3. Add ACLs:
    ```
    Table: story, Operation: read, All fields
@@ -50,7 +50,7 @@ If `technical_specification` field doesn't exist:
    - **Name**: `technical_specification`
    - **Type**: `Text (Large)` or `Journal Entry`
    - **Read Role**: agent role
-   - **Write Role**: `nav_pipeline_writer` role only
+   - **Write Role**: `ag01_arch_writer` role only
 
 ## Step 3: Create Business Rules
 
@@ -68,9 +68,8 @@ Create Business Rule for spec generation when story assigned to agent:
 
 **Condition**:
 ```javascript
-// Fire when assigned_to changes to the agent service account
-(gs.getValue('table.story.assigned_to_group') === 'nav_team' || 
- gs.getValue('table.story.assigned_to') === 'nav_pipeline_agent') &&
+// Fire when assigned_to changes to the AG01_arch agent account
+(gs.getValue('table.story.assigned_to') === 'AG01_arch') &&
 (!gs.isFirstTime('assigned_to') || gs.getValue('assigned_to') !== gs.getOldValue('assigned_to'))
 ```
 
@@ -189,7 +188,7 @@ In ServiceNow:
 
 ## Step 6: Test Configuration
 
-1. **Verify service account exists**: System Security > Users > Search for `nav_pipeline_agent`
+1. **Verify service account exists**: System Security > Users > Search for `AG01_arch`
 2. **Verify custom field exists**: System Definition > Tables > Story > Fields > Find `technical_specification`
 3. **Verify Business Rules exist**: System Policy > Business Rules (search for "Nav Pipeline")
 4. **Test REST Message**: Open the REST Message, click "Test" with sample payload

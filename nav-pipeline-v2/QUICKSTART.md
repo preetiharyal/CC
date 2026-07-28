@@ -37,7 +37,7 @@ Story closed → Blueprint automatically updates
 **File**: `./servicenow/SETUP.md`
 
 Key tasks:
-1. Create service account `nav_pipeline_agent`
+1. Create service account `AG01_arch`
 2. Add custom field `technical_specification` to Story table
 3. Create 2 Business Rules (spec generation + blueprint update)
 4. Create REST Message for webhooks
@@ -150,7 +150,7 @@ nav-pipeline-v2/
 ```
 ANTHROPIC_API_KEY=sk-ant-...        # Claude API key
 SERVICENOW_INSTANCE_URL=https://... # Your instance
-SERVICENOW_USERNAME=nav_pipeline_agent
+SERVICENOW_USERNAME=AG01_arch
 SERVICENOW_PASSWORD=...
 DESIGN_PRINCIPLES_ARTICLE_ID=...    # KB article with your standards
 WEBHOOK_AUTH_TOKEN=...              # Security token (optional)

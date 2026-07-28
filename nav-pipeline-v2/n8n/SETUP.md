@@ -27,7 +27,7 @@ In n8n:
 3. **Name**: `ServiceNow Instance`
 4. **Configuration**:
    - **Instance URL**: `https://your-instance.service-now.com`
-   - **Username**: `nav_pipeline_agent`
+   - **Username**: `AG01_arch`
    - **Password**: (use OAuth2 or API token)
    - **Client ID/Secret**: (if using OAuth2)
 
@@ -207,7 +207,7 @@ ANTHROPIC_API_KEY=your-key-here
 
 # ServiceNow
 SERVICENOW_INSTANCE_URL=https://your-instance.service-now.com
-SERVICENOW_USERNAME=nav_pipeline_agent
+SERVICENOW_USERNAME=AG01_arch
 SERVICENOW_PASSWORD=your-password
 
 # Design Principles Document ID
@@ -236,7 +236,7 @@ LOG_LEVEL=info
   "acceptance_criteria": "Dashboard shows real-time incident count and resolution time",
   "parent": "PRJ001",
   "project": "0123456789project",
-  "assigned_to": "nav_pipeline_agent",
+  "assigned_to": "AG01_arch",
   "timestamp": "2024-07-27T12:00:00.000Z"
 }
 ```

@@ -10,8 +10,8 @@ This guide walks you through deploying Nav Pipeline v2 to your production enviro
 **Time**: 15 minutes
 
 Follow `./servicenow/SETUP.md` Step 1:
-- [ ] Create user `nav_pipeline_agent`
-- [ ] Assign `nav_pipeline_writer` role
+- [ ] Create user `AG01_arch`
+- [ ] Assign `ag01_arch_writer` role
 - [ ] Verify role has correct ACLs
 
 ### Step 1.2: Add Custom Field
@@ -20,7 +20,7 @@ Follow `./servicenow/SETUP.md` Step 1:
 Follow `./servicenow/SETUP.md` Step 2:
 - [ ] Add `technical_specification` field to Story table
 - [ ] Type: Text (Large)
-- [ ] Set write permission to `nav_pipeline_writer` role
+- [ ] Set write permission to `ag01_arch_writer` role
 
 ### Step 1.3: Create Business Rules
 **Time**: 30 minutes

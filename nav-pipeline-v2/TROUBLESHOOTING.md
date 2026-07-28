@@ -18,7 +18,7 @@
 2. **Check Business Rule condition**
    ```javascript
    // Condition in Business Rule should evaluate to true for your test case
-   assigned_to changes AND assigned_to == 'nav_pipeline_agent'
+   assigned_to changes AND assigned_to == 'AG01_arch'
    
    // Test: Open a story, change assigned_to, save
    // If Business Rule is active and condition is true, it should fire
@@ -63,7 +63,7 @@
 
 1. **Verify service account has write permission**
    ```
-   In ServiceNow: System Security > Roles > nav_pipeline_writer
+   In ServiceNow: System Security > Roles > ag01_arch_writer
    Check ACL: story table, write, field: technical_specification
    ```
 

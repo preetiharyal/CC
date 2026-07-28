@@ -28,7 +28,7 @@
        "acceptance_criteria": "Field appears on incident form and saves correctly",
        "parent": "test_epic",
        "project": "test_project_id",
-       "assigned_to": "nav_pipeline_agent",
+       "assigned_to": "AG01_arch",
        "timestamp": "2024-07-27T12:00:00Z"
      }'
    ```
@@ -56,7 +56,7 @@
    - **Project**: Your test project
 
 2. **Assign to agent**:
-   - Change `assigned_to` to `nav_pipeline_agent` (the service account)
+   - Change `assigned_to` to `AG01_arch` (the service account)
    - Save the story
 
 3. **Monitor the trigger**:
